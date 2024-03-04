@@ -1681,6 +1681,23 @@ void PlotScatter(const char* label_id, const T* xs, const T* ys, int count, ImPl
 CALL_INSTANTIATE_FOR_NUMERIC_TYPES()
 #undef INSTANTIATE_MACRO
 
+template <typename T>
+void PlotScatterColorSize(const char* label_id, const T* xs, const T* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride) {
+    GetterXY<IndexerIdx<T>,IndexerIdx<T>> getter(IndexerIdx<T>(xs,count,offset,stride),IndexerIdx<T>(ys,count,offset,stride),count);
+    return PlotScatterColorSizeEx(label_id, getter, col, size, flags);
+}
+
+template IMPLOT_API void PlotScatterColorSize<ImS8>(const char* label_id, const ImS8* xs, const ImS8* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride);
+template IMPLOT_API void PlotScatterColorSize<ImU8>(const char* label_id, const ImU8* xs, const ImU8* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride);
+template IMPLOT_API void PlotScatterColorSize<ImS16>(const char* label_id, const ImS16* xs, const ImS16* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride);
+template IMPLOT_API void PlotScatterColorSize<ImU16>(const char* label_id, const ImU16* xs, const ImU16* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride);
+template IMPLOT_API void PlotScatterColorSize<ImS32>(const char* label_id, const ImS32* xs, const ImS32* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride);
+template IMPLOT_API void PlotScatterColorSize<ImU32>(const char* label_id, const ImU32* xs, const ImU32* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride);
+template IMPLOT_API void PlotScatterColorSize<ImS64>(const char* label_id, const ImS64* xs, const ImS64* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride);
+template IMPLOT_API void PlotScatterColorSize<ImU64>(const char* label_id, const ImU64* xs, const ImU64* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride);
+template IMPLOT_API void PlotScatterColorSize<float>(const char* label_id, const float* xs, const float* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride);
+template IMPLOT_API void PlotScatterColorSize<double>(const char* label_id, const double* xs, const double* ys, int count, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags, int offset, int stride);
+
 // custom
 void PlotScatterG(const char* label_id, ImPlotGetter getter_func, void* data, int count, ImPlotScatterFlags flags) {
     GetterFuncPtr getter(getter_func,data, count);
