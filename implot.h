@@ -112,6 +112,9 @@ typedef int ImPlotColormap;           // -> enum ImPlotColormap_
 typedef int ImPlotLocation;           // -> enum ImPlotLocation_
 typedef int ImPlotBin;                // -> enum ImPlotBin_
 
+typedef ImU32 (*ColorGetter)(const ImVec2& point, size_t index, size_t count);
+typedef float (*SizeGetter)(const ImVec2& point, size_t index, size_t count);
+
 // Axis indices. The values assigned may change; NEVER hardcode these.
 enum ImAxis_ {
     // horizontal axes

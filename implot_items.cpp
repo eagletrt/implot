@@ -1642,6 +1642,22 @@ void PlotLineG(const char* label_id, ImPlotGetter getter_func, void* data, int c
 //-----------------------------------------------------------------------------
 
 template <typename Getter>
+void PlotScatterColorSizeEx(const char* label_id, const Getter& getter, ColorGetter col, SizeGetter size, ImPlotScatterFlags flags) {
+    if (BeginItemEx(label_id, Fitter1<Getter>(getter), flags, ImPlotCol_MarkerOutline)) {
+        const ImPlotNextItemData& s = GetItemData();
+        ImPlotMarker marker = s.Marker == ImPlotMarker_None ? ImPlotMarker_Circle: s.Marker;
+        if (marker != ImPlotMarker_None) {
+            if (ImHasFlag(flags,ImPlotScatterFlags_NoClip)) {
+                PopPlotClipRect();
+                PushPlotClipRect(s.MarkerSize);
+            }
+            RenderMarkersColSize<Getter>(getter, marker, size, s.RenderMarkerFill, col, s.RenderMarkerLine, col, s.MarkerWeight);
+        }
+        EndItem();
+    }
+}
+
+template <typename Getter>
 void PlotScatterEx(const char* label_id, const Getter& getter, ImPlotScatterFlags flags) {
     if (BeginItemEx(label_id, Fitter1<Getter>(getter), flags, ImPlotCol_MarkerOutline)) {
         if (getter.Count <= 0) {
