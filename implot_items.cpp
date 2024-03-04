@@ -1508,14 +1508,14 @@ struct RendererMarkersFillColorSize : RendererBase {
     }
     IMPLOT_INLINE bool Render(ImDrawList& draw_list, const ImRect& cull_rect, int prim) const {
         ImVec2 p = this->Transformer(Getter(prim));
-        ImU32 col = Col(p, prim, Getter.Count);
+        ImVec4 col = Col(p, prim, Getter.Count);
         float size = Size(p, prim, Getter.Count);
         if (p.x >= cull_rect.Min.x && p.y >= cull_rect.Min.y && p.x <= cull_rect.Max.x && p.y <= cull_rect.Max.y) {
             for (int i = 0; i < Count; i++) {
                 draw_list._VtxWritePtr[0].pos.x = p.x + Marker[i].x * size;
                 draw_list._VtxWritePtr[0].pos.y = p.y + Marker[i].y * size;
                 draw_list._VtxWritePtr[0].uv = UV;
-                draw_list._VtxWritePtr[0].col = col;
+                draw_list._VtxWritePtr[0].col = ImGui::ColorConvertFloat4ToU32(col);
                 draw_list._VtxWritePtr++;
             }
             for (int i = 2; i < Count; i++) {
@@ -1535,6 +1535,44 @@ struct RendererMarkersFillColorSize : RendererBase {
     const SizeGetter Size;
     const ColorGetter Col;
     mutable ImVec2 UV;
+};
+
+template <class _Getter>
+struct RendererMarkersLineColorSize : RendererBase {
+    RendererMarkersLineColorSize(const _Getter& getter, const ImVec2* marker, int count, SizeGetter size, float weight, ColorGetter col) :
+            RendererBase(getter.Count, count/2*6, count/2*4),
+            Getter(getter),
+            Marker(marker),
+            Count(count),
+            HalfWeight(ImMax(1.0f,weight)*0.5f),
+            Size(size),
+            Col(col)
+    { }
+    void Init(ImDrawList& draw_list) const {
+        GetLineRenderProps(draw_list, HalfWeight, UV0, UV1);
+    }
+    IMPLOT_INLINE bool Render(ImDrawList& draw_list, const ImRect& cull_rect, int prim) const {
+        ImVec2 p = this->Transformer(Getter(prim));
+        ImVec4 col = Col(p, prim, Getter.Count);
+        float size = Size(p, prim, Getter.Count);
+        if (p.x >= cull_rect.Min.x && p.y >= cull_rect.Min.y && p.x <= cull_rect.Max.x && p.y <= cull_rect.Max.y) {
+            for (int i = 0; i < Count; i = i + 2) {
+                ImVec2 p1(p.x + Marker[i].x * size, p.y + Marker[i].y * size);
+                ImVec2 p2(p.x + Marker[i+1].x * size, p.y + Marker[i+1].y * size);
+                PrimLine(draw_list, p1, p2, HalfWeight, ImGui::ColorConvertFloat4ToU32(col), UV0, UV1);
+            }
+            return true;
+        }
+        return false;
+    }
+    const _Getter& Getter;
+    const ImVec2* Marker;
+    const int Count;
+    mutable float HalfWeight;
+    const SizeGetter Size;
+    const ColorGetter Col;
+    mutable ImVec2 UV0;
+    mutable ImVec2 UV1;
 };
 
 static const ImVec2 MARKER_FILL_CIRCLE[10]  = {ImVec2(1.0f, 0.0f), ImVec2(0.809017f, 0.58778524f),ImVec2(0.30901697f, 0.95105654f),ImVec2(-0.30901703f, 0.9510565f),ImVec2(-0.80901706f, 0.5877852f),ImVec2(-1.0f, 0.0f),ImVec2(-0.80901694f, -0.58778536f),ImVec2(-0.3090171f, -0.9510565f),ImVec2(0.30901712f, -0.9510565f),ImVec2(0.80901694f, -0.5877853f)};
@@ -1621,16 +1659,16 @@ void RenderMarkersColorSize(const _Getter& getter, ImPlotMarker marker, SizeGett
     }
     if (rend_line) {
         switch (marker) {
-            case ImPlotMarker_Circle    : RenderPrimitives1<RendererMarkersLineColSize>(getter,MARKER_LINE_CIRCLE, 20,size,weight,col_line); break;
-            case ImPlotMarker_Square    : RenderPrimitives1<RendererMarkersLineColSize>(getter,MARKER_LINE_SQUARE,  8,size,weight,col_line); break;
-            case ImPlotMarker_Diamond   : RenderPrimitives1<RendererMarkersLineColSize>(getter,MARKER_LINE_DIAMOND, 8,size,weight,col_line); break;
-            case ImPlotMarker_Up        : RenderPrimitives1<RendererMarkersLineColSize>(getter,MARKER_LINE_UP,      6,size,weight,col_line); break;
-            case ImPlotMarker_Down      : RenderPrimitives1<RendererMarkersLineColSize>(getter,MARKER_LINE_DOWN,    6,size,weight,col_line); break;
-            case ImPlotMarker_Left      : RenderPrimitives1<RendererMarkersLineColSize>(getter,MARKER_LINE_LEFT,    6,size,weight,col_line); break;
-            case ImPlotMarker_Right     : RenderPrimitives1<RendererMarkersLineColSize>(getter,MARKER_LINE_RIGHT,   6,size,weight,col_line); break;
-            case ImPlotMarker_Asterisk  : RenderPrimitives1<RendererMarkersLineColSize>(getter,MARKER_LINE_ASTERISK,6,size,weight,col_line); break;
-            case ImPlotMarker_Plus      : RenderPrimitives1<RendererMarkersLineColSize>(getter,MARKER_LINE_PLUS,    4,size,weight,col_line); break;
-            case ImPlotMarker_Cross     : RenderPrimitives1<RendererMarkersLineColSize>(getter,MARKER_LINE_CROSS,   4,size,weight,col_line); break;
+            case ImPlotMarker_Circle    : RenderPrimitives1<RendererMarkersLineColorSize>(getter,MARKER_LINE_CIRCLE, 20,size,weight,col_line); break;
+            case ImPlotMarker_Square    : RenderPrimitives1<RendererMarkersLineColorSize>(getter,MARKER_LINE_SQUARE,  8,size,weight,col_line); break;
+            case ImPlotMarker_Diamond   : RenderPrimitives1<RendererMarkersLineColorSize>(getter,MARKER_LINE_DIAMOND, 8,size,weight,col_line); break;
+            case ImPlotMarker_Up        : RenderPrimitives1<RendererMarkersLineColorSize>(getter,MARKER_LINE_UP,      6,size,weight,col_line); break;
+            case ImPlotMarker_Down      : RenderPrimitives1<RendererMarkersLineColorSize>(getter,MARKER_LINE_DOWN,    6,size,weight,col_line); break;
+            case ImPlotMarker_Left      : RenderPrimitives1<RendererMarkersLineColorSize>(getter,MARKER_LINE_LEFT,    6,size,weight,col_line); break;
+            case ImPlotMarker_Right     : RenderPrimitives1<RendererMarkersLineColorSize>(getter,MARKER_LINE_RIGHT,   6,size,weight,col_line); break;
+            case ImPlotMarker_Asterisk  : RenderPrimitives1<RendererMarkersLineColorSize>(getter,MARKER_LINE_ASTERISK,6,size,weight,col_line); break;
+            case ImPlotMarker_Plus      : RenderPrimitives1<RendererMarkersLineColorSize>(getter,MARKER_LINE_PLUS,    4,size,weight,col_line); break;
+            case ImPlotMarker_Cross     : RenderPrimitives1<RendererMarkersLineColorSize>(getter,MARKER_LINE_CROSS,   4,size,weight,col_line); break;
         }
     }
 }
